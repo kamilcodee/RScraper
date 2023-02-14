@@ -6,6 +6,7 @@ from rscraper import RScraperConfig
 from rscraper import util
 from rscraper.RSLogger import RSLogLevel
 from rscraper.RSLogger import RSLogger
+from rscraper.key.RedditKey import RedditKey
 
 
 class RScraper:
@@ -21,15 +22,16 @@ class RScraper:
         self.rsconfig = rsconfig
         self.logger = RSLogger(self.rsconfig)
 
-    def scrape_reddits(self, limit: int | None) -> None:
+    def scrape_reddits(self, limit: int | None, keys: list[RedditKey] = None) -> None:
         """
         Scrape reddit data
         :param limit: amount of reddits fetched, can be None for all
-        :raises ValueError
+        :param keys: list of attributes to receive, can be None for all (default)
+        :raises TypeError, ValueError
         :return: None
         """
 
-        def _process_reddit(in_data: dict[str, str], keys: list[str]) -> dict[str, str]:
+        def _process_reddit(in_data: dict[str, str]) -> dict[str, str]:
             """
             Parse reddit data
             :param in_data Input data of a reddit
@@ -37,13 +39,32 @@ class RScraper:
             :return:
             """
 
-            # TODO: process keys of interest
-            return in_data
+            output = dict()
+
+            if keys:
+                for k in keys:
+                    output[k.value] = in_data['data'].get(k.value, self.rsconfig.key_not_found)
+            else:
+                output = in_data
+
+            return {'kind': in_data['kind'], 'data': output}
 
         # TODO: add metrics (time taken etc)
 
-        if limit and not isinstance(limit, int):
-            raise ValueError(f'Limit has to be [int/None], got {limit} type {type(limit)}')
+        if limit:
+            if not isinstance(limit, int):
+                raise TypeError(f'Limit has to be [int/None], got {limit} type {type(limit)}')
+
+            if limit <= 0:
+                raise ValueError(f'Limit has to be >= 1, got {limit}')
+
+        if keys:
+            if not isinstance(keys, list):
+                raise TypeError(f'Keys attribute has to be a list or None, got {keys} type {type(keys)}')
+
+            for i, key in enumerate(keys):
+                if key not in RedditKey:
+                    raise TypeError(f'Key of index {i} has to be a RedditKey, got {key} type {type(key)}')
 
         component = 'Reddit Scraper'
 
@@ -79,7 +100,7 @@ class RScraper:
                 finished = True
 
             for reddit in req_data['children']:
-                reddits_fetched.append(_process_reddit(reddit, []))
+                reddits_fetched.append(_process_reddit(reddit))
 
                 if limit and len(reddits_fetched) >= limit:
                     finished = True

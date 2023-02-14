@@ -7,15 +7,15 @@ class RScraperConfig:
         """
         :param console_log: enable console logging
         :param save_to_file: save data to .json
-        :raises ValueError
+        :raises TypeError
         """
 
         if not isinstance(console_log, bool):
-            raise ValueError(f'Param console_log has to be [True/False], got {console_log} type = {type(console_log)}')
+            raise TypeError(f'Param console_log has to be bool [True/False], got {console_log} type = {type(console_log)}')
 
         if not isinstance(save_to_file, bool):
-            raise ValueError(
-                f'Param save_to_file has to be [True/False], got = {save_to_file} type = {type(save_to_file)}')
+            raise TypeError(
+                f'Param save_to_file has to be bool [True/False], got = {save_to_file} type = {type(save_to_file)}')
 
         self.console_log = console_log
         self.base_url = 'https://www.reddit.com/'
@@ -27,6 +27,8 @@ class RScraperConfig:
 
         self.save_to_file = save_to_file
         self.reddits_save_filename = 'reddits.json'
+
+        self.key_not_found = 'N/A'  # fallback if an attribute isn't found
 
     @property
     def details(self) -> dict[str, str]:

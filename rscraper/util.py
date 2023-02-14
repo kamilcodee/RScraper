@@ -11,12 +11,12 @@ def get_random_user_agent():
 def get_timestamp_utc(as_str: bool = False) -> datetime | str:
     """
     :param as_str: return as string
-    :raises ValueError
+    :raises TypeError
     :return: timestamp
     """
 
     if not isinstance(as_str, bool):
-        raise ValueError(f'Param as_str has to be [True/False], got = {as_str} type = {type(as_str)}')
+        raise TypeError(f'Param as_str has to be [True/False], got = {as_str} type = {type(as_str)}')
 
     timestamp = datetime.now(timezone.utc)
 
