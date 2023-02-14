@@ -1,3 +1,5 @@
+import json
+
 import requests
 
 from rscraper import RScraperConfig
@@ -23,7 +25,7 @@ class RScraper:
         """
         Scrape reddit data
         :param limit: amount of reddits fetched, can be None for all
-        :raises ValueError if limit not None or type int
+        :raises ValueError
         :return: None
         """
 
@@ -41,7 +43,7 @@ class RScraper:
         # TODO: add metrics (time taken etc)
 
         if limit and not isinstance(limit, int):
-            raise ValueError(f'Limit has to be an int or be None, got {limit} type {type(limit)}')
+            raise ValueError(f'Limit has to be [int/None], got {limit} type {type(limit)}')
 
         component = 'Reddit Scraper'
 
@@ -84,3 +86,21 @@ class RScraper:
                     break
 
             self.logger.log(RSLogLevel.INFO, component, f'Fetch count = {len(reddits_fetched)}')
+
+        if self.rsconfig.save_to_file:
+            data_dir = self.rsconfig.data_dir
+            filename = self.rsconfig.reddits_save_filename
+            save_file_path = f'{data_dir}/{filename}'
+
+            util.create_dir_if_nonexistent(self.rsconfig.data_dir)
+            util.delete_file_if_exists(save_file_path)
+
+            # TODO: encapsulate
+            with open(save_file_path, 'w') as reddit_out_file:
+                json.dump({
+                    'count': len(reddits_fetched),
+                    'timestamp': util.get_timestamp_utc(True),
+                    'reddits': reddits_fetched
+                }, reddit_out_file, indent=4)
+
+            self.logger.log(RSLogLevel.INFO, 'Reddit Scraper', f'Save file location = {save_file_path}')
