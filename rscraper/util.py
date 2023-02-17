@@ -8,19 +8,13 @@ def get_random_user_agent():
     return UserAgent().random
 
 
-def get_timestamp_utc(as_str: bool = False) -> datetime | str:
+def get_timestamp_utc() -> datetime:
     """
-    :param as_str: return as string
     :raises TypeError
     :return: timestamp
     """
 
-    if not isinstance(as_str, bool):
-        raise TypeError(f'Param as_str has to be [True/False], got = {as_str} type = {type(as_str)}')
-
-    timestamp = datetime.now(timezone.utc)
-
-    return timestamp if not as_str else str(as_str)
+    return datetime.now(timezone.utc)
 
 
 def create_dir_if_nonexistent(path: str) -> None:
@@ -31,3 +25,11 @@ def create_dir_if_nonexistent(path: str) -> None:
 def delete_file_if_exists(path: str) -> None:
     if os.path.exists(path):
         os.remove(path)
+
+
+def dir_exists(path: str) -> bool:
+    return os.path.isdir(path)
+
+
+def file_exists(path: str) -> bool:
+    return os.path.isfile(path)

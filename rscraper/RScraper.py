@@ -9,6 +9,8 @@ from rscraper.RSLogger import RSLogger
 from rscraper.key.RedditKey import RedditKey
 
 
+# TODO: multiprocessing / threading to speed up
+
 class RScraper:
     """
     Reddit Scraper
@@ -22,13 +24,14 @@ class RScraper:
         self.rsconfig = rsconfig
         self.logger = RSLogger(self.rsconfig)
 
-    def scrape_reddits(self, limit: int | None, keys: list[RedditKey] = None) -> None:
+    def scrape_reddits(self, limit: int | None, keys: list[RedditKey] = None, return_data: bool = False) -> None | dict:
         """
         Scrape reddit data
         :param limit: amount of reddits fetched, can be None for all
         :param keys: list of attributes to receive, can be None for all (default)
+        :param return_data: return scraped data as dict, default False
         :raises TypeError, ValueError
-        :return: None
+        :return: None or dict of scraped data if return_data = True
         """
 
         def _process_reddit(in_data: dict[str, str]) -> dict[str, str]:
@@ -108,6 +111,12 @@ class RScraper:
 
             self.logger.log(RSLogLevel.INFO, component, f'Fetch count = {len(reddits_fetched)}')
 
+        output_data = {
+            'count': len(reddits_fetched),
+            'timestamp': str(util.get_timestamp_utc()),
+            'reddits': reddits_fetched
+        }
+
         if self.rsconfig.save_to_file:
             data_dir = self.rsconfig.data_dir
             filename = self.rsconfig.reddits_save_filename
@@ -118,10 +127,61 @@ class RScraper:
 
             # TODO: encapsulate
             with open(save_file_path, 'w') as reddit_out_file:
-                json.dump({
-                    'count': len(reddits_fetched),
-                    'timestamp': util.get_timestamp_utc(True),
-                    'reddits': reddits_fetched
-                }, reddit_out_file, indent=4)
+                json.dump(output_data, reddit_out_file, indent=4)
 
             self.logger.log(RSLogLevel.INFO, 'Reddit Scraper', f'Save file location = {save_file_path}')
+
+        if return_data:
+            return output_data
+
+    def scrape_submissions(self, reddit_url_list: list[str] | None = None) -> None:
+        """
+        Scrape submissions from subreddits
+        :param reddit_url_list: list of reddit URLs to scrape [format /r/Home/], can be none to look for saved data
+        :return: None
+        """
+
+        def _load_scraped_reddits() -> list[str]:
+            """
+            Load data from the data dir and parse URLs
+            :return: list of parsed URLS
+            """
+
+            if not util.dir_exists(self.rsconfig.data_dir):
+                raise NotADirectoryError(f'Directory {self.rsconfig.data_dir} does not exist')
+
+            reddit_data_file_path = f'{self.rsconfig.data_dir}/{self.rsconfig.reddits_save_filename}'
+            if not util.file_exists(reddit_data_file_path):
+                raise FileNotFoundError(f'File {reddit_data_file_path} does not exist')
+
+            data = dict()
+            with open(reddit_data_file_path, 'r') as in_file:
+                data = json.load(in_file)
+
+            # "url": "/r/Home/",
+            urls: list[str]
+            urls = list()
+            for reddit in data['reddits']:
+                url = reddit['data'].get('url')
+
+                if not url:
+                    raise KeyError(
+                        f'URL can not be retrieved from {reddit_data_file_path}. Please ensure {reddit_data_file_path} '
+                        f'contains reddit URLs, or provide a list of URLs to scrape in reddit_url_list param')
+
+        def _format_url(url) -> str:
+            """
+            Parse URL, ensure correct format
+            :param url: URL to be parsed
+            :return: URL as str
+            """
+
+            # TODO: parsing, "/r/Home/"
+
+            if url.endswith('/'):
+                url = url[:-1]
+
+            return f'{url}.json'
+
+        if not reddit_url_list:
+            reddit_url_list = _load_scraped_reddits()
