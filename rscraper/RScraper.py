@@ -1,4 +1,5 @@
 import json
+from pprint import pprint
 
 import requests
 
@@ -82,14 +83,15 @@ class RScraper:
         reddits_fetched = list()
 
         print()
-        self.logger.log(RSLogLevel.INFO, 'Reddit Scraper', f'Scraping with limit = {limit_per_request}')
+        self.logger.log(RSLogLevel.INFO, 'Reddit Scraper',
+                        f'Scraping with limit = {limit_per_request} per request | Reddit limit = {limit}')
 
         while not finished:
             request_url = ''.join(
                 [self.rsconfig.base_url, self.rsconfig.reddits_sub_url, '.json', f'?limit={limit_per_request}',
                  f'&after={after}' if after else ''])
 
-            self.logger.log(RSLogLevel.INFO, component, f'Requesting {request_url}')
+            self.logger.log(RSLogLevel.DEBUG, component, f'Requesting {request_url}')
 
             req = requests.get(request_url, headers={'User-Agent': util.get_random_user_agent()})
             req_data = req.json().get('data')
@@ -109,7 +111,7 @@ class RScraper:
                     finished = True
                     break
 
-            self.logger.log(RSLogLevel.INFO, component, f'Fetch count = {len(reddits_fetched)}')
+            self.logger.log(RSLogLevel.DEBUG, component, f'Fetch count = {len(reddits_fetched)}')
 
         output_data = {
             'count': len(reddits_fetched),
@@ -134,10 +136,12 @@ class RScraper:
         if return_data:
             return output_data
 
-    def scrape_submissions(self, reddit_url_list: list[str] | None = None) -> None:
+    def scrape_submissions(self, reddit_url_list: list[str] | None = None, limit: int = None) -> None:
         """
         Scrape submissions from subreddits
-        :param reddit_url_list: list of reddit URLs to scrape [format /r/Home/], can be none to look for saved data
+        :param reddit_url_list: list of reddit URLs to scrape [format /r/<title>/, example /r/Home],
+         can be none to look for saved data (default None)
+        :param limit: amount of submissions per reddit, can be None for all (default None)
         :return: None
         """
 
@@ -169,19 +173,76 @@ class RScraper:
                         f'URL can not be retrieved from {reddit_data_file_path}. Please ensure {reddit_data_file_path} '
                         f'contains reddit URLs, or provide a list of URLs to scrape in reddit_url_list param')
 
+                urls.append(url)
+
+            return urls
+
         def _format_url(url) -> str:
             """
             Parse URL, ensure correct format
             :param url: URL to be parsed
             :return: URL as str
             """
+            EXPECTED_START = '/r/'
+
+            if not url.startswith(EXPECTED_START):
+                raise ValueError(f'{url} not in valid format, expected = /r/<title>/, example /r/Home')
 
             # TODO: parsing, "/r/Home/"
 
             if url.endswith('/'):
                 url = url[:-1]
 
-            return f'{url}.json'
+            url = url[1:]  # remove leading /
+
+            return f'{self.rsconfig.base_url}{url}.json'
 
         if not reddit_url_list:
             reddit_url_list = _load_scraped_reddits()
+        reddit_url_list = [_format_url(url) for url in reddit_url_list]
+
+        if limit and not isinstance(limit, int):
+            raise TypeError(f'Limit has to be [int/None], got {limit} type {type(limit)}')
+
+        print()
+
+        component = 'Submission Scraper'
+
+        for url in reddit_url_list:
+            finished = False
+            after = None
+
+            limit_per_request = self.rsconfig.submissions_per_request
+            if limit and limit < self.rsconfig.submissions_per_request:
+                limit_per_request = limit
+
+            self.logger.log(RSLogLevel.INFO, component,
+                            f'Scraping {url} with limit = {limit_per_request} per request | Submission limit = {limit}')
+
+            submissions_fetched = list()
+
+            while not finished:
+                request_url = ''.join(
+                    [url, '?limit=', f'{limit_per_request}', f'&after={after}' if after else ''])
+
+                self.logger.log(RSLogLevel.DEBUG, component, f'Requesting {request_url}')
+
+                req = requests.get(request_url, headers={'User-Agent': util.get_random_user_agent()})
+                req_data = req.json().get('data')
+
+                after = req_data['after']
+
+                if not after:
+                    finished = True
+
+                for submission_data in req_data['children']:
+                    # TODO: key parsing
+                    submissions_fetched.append(submission_data)
+
+                    if limit and len(submissions_fetched) >= limit:
+                        finished = True
+                        break
+
+                self.logger.log(RSLogLevel.DEBUG, component, f'Fetch count for {url} = {len(submissions_fetched)}')
+
+            pprint(submissions_fetched[0])

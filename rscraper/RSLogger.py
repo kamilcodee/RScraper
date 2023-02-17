@@ -6,8 +6,9 @@ from rscraper import util
 
 
 class RSLogLevel(Enum):
-    INFO = 'INFO'
-    ERROR = 'ERROR'
+    DEBUG = ('DEBUG', 1)
+    INFO = ('INFO', 2)
+    ERROR = ('ERROR', 3)
 
 
 class RSLoggerInterface(ABC):
@@ -28,4 +29,5 @@ class RSLogger(RSLoggerInterface):
         self.rsconfig = rsconfig
 
     def log(self, level: RSLogLevel, component: str, msg: str) -> None:
-        print(f'{util.get_timestamp_utc()}\t[{level.value}]\t[RScraper]\t[{component}]\t{msg}')
+        if level.value[1] >= self.rsconfig.target_log_level.value[1]:
+            print(f'{util.get_timestamp_utc()}\t[{level.value[0]}]\t[RScraper]\t[{component}]\t{msg}')

@@ -1,3 +1,6 @@
+from rscraper.RSLogger import RSLogLevel
+
+
 class RScraperConfig:
     """
     RScraper config class
@@ -11,7 +14,8 @@ class RScraperConfig:
         """
 
         if not isinstance(console_log, bool):
-            raise TypeError(f'Param console_log has to be bool [True/False], got {console_log} type = {type(console_log)}')
+            raise TypeError(
+                f'Param console_log has to be bool [True/False], got {console_log} type = {type(console_log)}')
 
         if not isinstance(save_to_file, bool):
             raise TypeError(
@@ -19,16 +23,17 @@ class RScraperConfig:
 
         self.console_log = console_log
         self.base_url = 'https://www.reddit.com/'
+        self.save_to_file = save_to_file
+        self.data_dir = 'data'
+        self.key_not_found = 'N/A'  # fallback if an attribute isn't found
+
+        self.target_log_level = RSLogLevel.INFO
 
         self.reddits_sub_url = 'reddits'
         self.reddits_per_request = 100
-
-        self.data_dir = 'data'
-
-        self.save_to_file = save_to_file
         self.reddits_save_filename = 'reddits.json'
 
-        self.key_not_found = 'N/A'  # fallback if an attribute isn't found
+        self.submissions_per_request = 100
 
     @property
     def details(self) -> dict[str, str]:
