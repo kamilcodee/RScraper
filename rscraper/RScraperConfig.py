@@ -35,6 +35,9 @@ class RScraperConfig:
 
         self.submissions_per_request = 100
         self.submissions_data_dir = 'submissions'
+        self.submissions_index_file = 'submission_index'
+
+        self.comments_data_dir = 'comments'
 
     @property
     def details(self) -> dict[str, str]:

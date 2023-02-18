@@ -1,4 +1,5 @@
 import json
+from pprint import pprint
 
 import requests
 
@@ -265,8 +266,12 @@ class RScraper:
         subreddit_name_url_tuple_list = list()
         subreddit_name_url_tuple_list = [_get_name_url_tuple(url) for url in subreddit_url_list]
 
-        if limit and not isinstance(limit, int):
-            raise TypeError(f'Limit has to be [int/None], got {limit} type {type(limit)}')
+        if limit:
+            if not isinstance(limit, int):
+                raise TypeError(f'Limit has to be [int/None], got {limit} type {type(limit)}')
+
+            if limit <= 0:
+                raise ValueError(f'Limit has to be >= 1, got {limit}')
 
         if keys:
             if not isinstance(keys, list):
@@ -318,7 +323,7 @@ class RScraper:
                 self.logger.log(RSLogLevel.DEBUG, component, f'Fetch count for {url} = {len(submissions_fetched)}')
 
             output_data = {
-                'reddit': subreddit_name,
+                'subreddit': subreddit_name,
                 'count': len(submissions_fetched),
                 'timestamp': str(util.get_timestamp_utc()),
                 'submissions': submissions_fetched
@@ -326,3 +331,124 @@ class RScraper:
 
             if self.rsconfig.save_to_file:
                 _save_data()
+
+    def scrape_comments(self, limit: int = None) -> None:
+        """
+        Scrape comments from submissions saved in the submission data dir
+        :param limit: amount of submissions per subreddit, can be None for all (default None)
+        """
+
+        def _load_submissions() -> list[tuple[str, str, str]]:
+            """
+            Return tuple (reddit, url) of submissions saved in the submission data dir
+            """
+
+            data_dir = self.rsconfig.data_dir
+            submissions_data_dir = f'{data_dir}/{self.rsconfig.submissions_data_dir}'
+
+            if not util.dir_exists(data_dir):
+                raise NotADirectoryError(f'Directory {data_dir} does not exist')
+
+            if not util.dir_exists(submissions_data_dir):
+                raise NotADirectoryError(f'Directory {submissions_data_dir} does not exist')
+
+            submission_json_files = util.get_files_in_dir(submissions_data_dir, 'json')
+
+            output: list[tuple[str, str]]
+            output = list()
+
+            for json_file in submission_json_files:
+                with open(f'{submissions_data_dir}/{json_file}', 'r') as in_file:
+                    in_data = json.load(in_file)
+
+                subreddit = in_data.get('subreddit', self.rsconfig.key_not_found)
+
+                for submission in in_data['submissions']:
+                    submission_permalink = submission['data'].get('permalink')
+
+                    if not submission_permalink:
+                        raise KeyError(f'Submission from {json_file} does not contain the "permalink"')
+
+                    output.append((subreddit, _format_link(submission_permalink)))
+
+            return output
+
+        def _format_link(link: str) -> str:
+            if link.endswith('/'):
+                link = link[:-1]
+
+            if link.startswith('/'):
+                link = link[1:]
+
+            link = f'{self.rsconfig.base_url}{link}.json'
+
+            return link
+
+        if limit:
+            if not isinstance(limit, int):
+                raise TypeError(f'Limit has to be [int/None], got {limit} type {type(limit)}')
+
+            if limit <= 0:
+                raise ValueError(f'Limit has to be >= 1, got {limit}')
+
+        def save_to_index(sub_name: str, sub_id: str) -> None:
+            """
+            Due to the fact submission names are lengthy, create an index file with id : name mappings
+            :param sub_name name of submission
+            :param sub_id id of submission
+            """
+
+            submission_index_file_path = f'{self.rsconfig.data_dir}/{self.rsconfig.comments_data_dir}/' \
+                                         f'{self.rsconfig.submissions_index_file}.json'
+
+            submissions_index = dict()
+            if util.file_exists(submission_index_file_path):
+                with open(submission_index_file_path, 'r') as in_file:
+                    submissions_index = json.load(in_file)
+
+                util.delete_file_if_exists(submission_index_file_path)
+
+            submissions_index[sub_id] = sub_name
+
+            with open(submission_index_file_path, 'w') as out_file:
+                json.dump(submissions_index, out_file, indent=4)
+
+        component = 'Comment Scraper'
+
+        util.create_dir_if_nonexistent(f'{self.rsconfig.data_dir}/{self.rsconfig.comments_data_dir}')
+
+        print()
+        self.logger.log(RSLogLevel.DEBUG, component, f'Scraping with limit = {limit}')
+
+        submissions_data = _load_submissions()
+        for subreddit_name, submission_url in submissions_data:
+            finished = False
+
+            comments: list[dict]
+            comments = list()
+
+            submission_name = None
+            submission_id = None
+
+            while not finished:
+                self.logger.log(RSLogLevel.DEBUG, component, f'Requesting {submission_url}')
+
+                req = requests.get(submission_url, headers={'User-Agent': util.get_random_user_agent()})
+
+                # first element in array has info about submission, 2nd has comments
+                if not submission_name:
+                    submission_data = req.json()[0]['data']['children'][0]['data']
+
+                    submission_name = submission_data.get('title', self.rsconfig.key_not_found)
+                    submission_id = submission_data.get('id', self.rsconfig.key_not_found)
+
+                req_data = req.json()[1]
+
+                print(submission_name)
+                print(submission_id)
+                # pprint(req_data)
+
+                save_to_index(submission_name, submission_id)
+                finished = True
+
+        pprint(submissions_data)

@@ -9,7 +9,9 @@ if __name__ == '__main__':
     rs = RScraper(rsconfig)
 
     reddits: dict
-    reddits = rs.scrape_subreddits(limit=2, keys=[SubredditKey.ID, SubredditKey.NAME, SubredditKey.URL],
+    reddits = rs.scrape_subreddits(limit=1, keys=[SubredditKey.ID, SubredditKey.NAME, SubredditKey.URL],
                                    return_data=True)
 
-    rs.scrape_submissions(limit=2, keys=[SubmissionKey.ID, SubmissionKey.NAME, SubmissionKey.URL])
+    rs.scrape_submissions(limit=1, keys=[SubmissionKey.ID, SubmissionKey.NAME, SubmissionKey.PERMALINK])
+
+    rs.scrape_comments(limit=1)
