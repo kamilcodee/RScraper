@@ -1,4 +1,5 @@
 from rscraper.RSLogger import RSLogLevel
+from rscraper.util import get_random_user_agent
 
 
 class RScraperConfig:
@@ -21,6 +22,7 @@ class RScraperConfig:
             raise TypeError(
                 f'Param save_to_file has to be bool [True/False], got = {save_to_file} type = {type(save_to_file)}')
 
+        self.ua_generator = get_random_user_agent
         self.console_log = console_log
         self.base_url = 'https://www.reddit.com/'
         self.save_to_file = save_to_file
@@ -35,9 +37,9 @@ class RScraperConfig:
 
         self.submissions_per_request = 100
         self.submissions_data_dir = 'submissions'
-        self.submissions_index_file = 'submission_index'
 
         self.comments_data_dir = 'comments'
+        self.submissions_index_file = 'submission_index'  # belongs to comment dir
 
     @property
     def details(self) -> dict[str, str]:

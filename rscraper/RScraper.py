@@ -10,7 +10,6 @@ from rscraper.key import SubmissionKey, SubredditKey
 
 
 # TODO: multiprocessing / threading to speed up [TODO1]
-# TODO: useragent generation strategy, can add your own generator [TODO2]
 # TODO: add metrics (time taken, etc) [TODO4]
 # TODO: general error handling [TODO5]
 # TODO: comment scraping [TODO6]
@@ -113,7 +112,7 @@ class RScraper:
 
             self.logger.log(RSLogLevel.DEBUG, component, f'Requesting {request_url}')
 
-            req = requests.get(request_url, headers={'User-Agent': util.get_random_user_agent()})
+            req = requests.get(request_url, headers={'User-Agent': self.rsconfig.ua_generator()})
             req_data = req.json().get('data')
 
             if not req_data:
@@ -305,7 +304,7 @@ class RScraper:
 
                 self.logger.log(RSLogLevel.DEBUG, component, f'Requesting {request_url}')
 
-                req = requests.get(request_url, headers={'User-Agent': util.get_random_user_agent()})
+                req = requests.get(request_url, headers={'User-Agent': self.rsconfig.ua_generator()})
                 req_data = req.json().get('data')
 
                 after = req_data['after']
@@ -384,13 +383,6 @@ class RScraper:
 
             return link
 
-        if limit:
-            if not isinstance(limit, int):
-                raise TypeError(f'Limit has to be [int/None], got {limit} type {type(limit)}')
-
-            if limit <= 0:
-                raise ValueError(f'Limit has to be >= 1, got {limit}')
-
         def save_to_index(sub_name: str, sub_id: str) -> None:
             """
             Due to the fact submission names are lengthy, create an index file with id : name mappings
@@ -413,6 +405,13 @@ class RScraper:
             with open(submission_index_file_path, 'w') as out_file:
                 json.dump(submissions_index, out_file, indent=4)
 
+        if limit:
+            if not isinstance(limit, int):
+                raise TypeError(f'Limit has to be [int/None], got {limit} type {type(limit)}')
+
+            if limit <= 0:
+                raise ValueError(f'Limit has to be >= 1, got {limit}')
+
         component = 'Comment Scraper'
 
         util.create_dir_if_nonexistent(f'{self.rsconfig.data_dir}/{self.rsconfig.comments_data_dir}')
@@ -433,7 +432,7 @@ class RScraper:
             while not finished:
                 self.logger.log(RSLogLevel.DEBUG, component, f'Requesting {submission_url}')
 
-                req = requests.get(submission_url, headers={'User-Agent': util.get_random_user_agent()})
+                req = requests.get(submission_url, headers={'User-Agent': self.rsconfig.ua_generator()})
 
                 # first element in array has info about submission, 2nd has comments
                 if not submission_name:

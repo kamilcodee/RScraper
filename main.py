@@ -1,10 +1,12 @@
 from rscraper import RScraperConfig, RScraper
 from rscraper import SubredditKey, SubmissionKey
 from rscraper.RSLogger import RSLogLevel
+from rscraper.util import get_random_user_agent
 
 if __name__ == '__main__':
     rsconfig = RScraperConfig(console_log=True, save_to_file=True)
     rsconfig.target_log_level = RSLogLevel.DEBUG  # override loglevel for debugging purposes
+    rsconfig.ua_generator = get_random_user_agent  # own generation strategy for useragent
 
     rs = RScraper(rsconfig)
 
