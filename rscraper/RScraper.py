@@ -8,9 +8,11 @@ from rscraper.RSLogger import RSLogger, RSLogLevel
 from rscraper.key import SubmissionKey, SubredditKey
 
 
-# TODO: multiprocessing / threading to speed up
-# TODO: useragent generation strategy, can add your own generator
-# TODO: error handling
+# TODO: multiprocessing / threading to speed up [TODO1]
+# TODO: useragent generation strategy, can add your own generator [TODO2]
+# TODO: add metrics (time taken, etc) [TODO4]
+# TODO: general error handling [TODO5]
+# TODO: comment scraping [TODO6]
 
 class RScraper:
     """
@@ -71,8 +73,6 @@ class RScraper:
 
             return {'kind': in_data['kind'], 'data': output}
 
-        # TODO: add metrics (time taken etc)
-
         if limit:
             if not isinstance(limit, int):
                 raise TypeError(f'Limit has to be [int/None], got {limit} type {type(limit)}')
@@ -116,8 +116,7 @@ class RScraper:
             req_data = req.json().get('data')
 
             if not req_data:
-                # TODO: handling on error/ etc
-                pass
+                continue
 
             after = req_data['after']
             if not after:
@@ -234,8 +233,6 @@ class RScraper:
 
             name = _get_name_from_url(url)
 
-            # TODO: parsing, "/r/Home/"
-
             if url.endswith('/'):
                 url = url[:-1]
 
@@ -312,7 +309,6 @@ class RScraper:
                     finished = True
 
                 for submission_data in req_data['children']:
-                    # TODO: key parsing
                     submissions_fetched.append(_process_submission(submission_data))
 
                     if limit and len(submissions_fetched) >= limit:
