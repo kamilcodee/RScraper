@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class RedditKey(Enum):
+class SubredditKey(Enum):
     RESTRICT_POSTING = 'restrict_posting'
     WIKI_ENABLED = 'wiki_enabled'
     DISPLAY_NAME = 'display_name'

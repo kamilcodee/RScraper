@@ -29,11 +29,12 @@ class RScraperConfig:
 
         self.target_log_level = RSLogLevel.INFO
 
-        self.reddits_sub_url = 'reddits'
-        self.reddits_per_request = 100
-        self.reddits_save_filename = 'reddits.json'
+        self.subreddits_sub_url = 'reddits'
+        self.subreddits_per_request = 100
+        self.subreddits_save_filename = 'subreddits.json'
 
         self.submissions_per_request = 100
+        self.submissions_data_dir = 'submissions'
 
     @property
     def details(self) -> dict[str, str]:

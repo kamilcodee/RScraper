@@ -1,5 +1,5 @@
 from rscraper import RScraperConfig, RScraper
-from rscraper import RedditKey
+from rscraper import SubredditKey, SubmissionKey
 from rscraper.RSLogger import RSLogLevel
 
 if __name__ == '__main__':
@@ -9,6 +9,7 @@ if __name__ == '__main__':
     rs = RScraper(rsconfig)
 
     reddits: dict
-    reddits = rs.scrape_reddits(limit=1, keys=[RedditKey.ID, RedditKey.NAME, RedditKey.URL], return_data=True)
+    reddits = rs.scrape_subreddits(limit=2, keys=[SubredditKey.ID, SubredditKey.NAME, SubredditKey.URL],
+                                   return_data=True)
 
-    rs.scrape_submissions(limit=234)
+    rs.scrape_submissions(limit=2, keys=[SubmissionKey.ID, SubmissionKey.NAME, SubmissionKey.URL])
