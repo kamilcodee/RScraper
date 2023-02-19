@@ -56,7 +56,7 @@ class SubmissionScraper:
         Logger.log(LogLevel.DEBUG, self._component,
                    f'Retrieved subreddits count = {len(self._subreddit_name_url_list)}')
 
-    def _create_url(self, base_url: str, after: str) -> str:
+    def _create_url(self, base_url: str, after: str | None) -> str:
         return ''.join(
             [base_url, '.json', '?limit=', f'{self._config.max_limit_per_request}', f'&after={after}' if after else ''])
 
