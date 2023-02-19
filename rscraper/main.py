@@ -7,7 +7,6 @@ if __name__ == '__main__':
     config.data_dir = f'../{config.data_dir}'
 
     subredditScraper = SubredditScraper(config)
-    subredditScraper.limit = 2
 
     subredditScraper.scrape()
     # pprint(subredditScraper.subreddits)
@@ -15,6 +14,5 @@ if __name__ == '__main__':
     subredditScraper.save_data()
 
     submissionScraper = SubmissionScraper(config)
-    submissionScraper.limit = 55
 
     submissionScraper.scrape()
