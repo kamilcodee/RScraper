@@ -91,3 +91,10 @@ Developed and tested using
 
 - requests~=2.28.2 (tested with 2.28.2)
 - fake-useragent~=1.1.1 (tested with 1.1.1)
+
+# FYI
+The size of data fetched if not setting limits is quite large.
+On average there are about 4300 subreddits that you can scroll through
+Each one has an average of 1000 submissions to scroll through
+
+Fetching all the data for 284 subreddits (6% of total) takes up about 2GB of disk space
