@@ -1,6 +1,9 @@
 # rscraper
 Basic reddit scraper for publicly available data. Imitates the user "scrolling" down the pages and retrieving all
-available data , until there is nothing to retrieve.
+available data, until there is nothing to retrieve.
+
+Can be used to scrape **subreddits** and **submissions**.
+For comment scraping use **PRAW**.
 
 # How To
 1. Config
@@ -52,7 +55,11 @@ from rscraper import SubmissionKey
 
 
 # Environment
-Developed and tested using Python 3.11, Windows 10 Home, (M1 Pro) macOS 13.2.1 (Ventura)
+Developed and tested using 
+- Python 3.11 
+  - Windows 10 Home
+  - macOS 13.2.1 (M1 Pro) 
+  
 ## Requirements:
 ~= means compatible version
 - requests~=2.28.2 (tested with 2.28.2)
