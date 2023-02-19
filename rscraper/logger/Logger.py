@@ -1,4 +1,4 @@
-from rscraper.logger import LogLevel
+from rscraper.logger.LogLevel import LogLevel
 
 
 class Colours:
@@ -9,8 +9,6 @@ class Colours:
     WARNING = '\033[93m'
     FAIL = '\033[91m'
     ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
 
 
 class Logger:
@@ -22,8 +20,8 @@ class Logger:
         param: component:
         """
 
-        # TODO: depending on level different colour
-        level = f'{Colours.OKGREEN}[{level.value[0]}]{Colours.ENDC}'
+        level_colour = [Colours.OKBLUE, Colours.OKGREEN, Colours.WARNING, Colours.FAIL][level.value[1]]
+        level = f'{level_colour}[{level.value[0]}]{Colours.ENDC}'
 
         timestamp = f'{Colours.HEADER}[timestamp]{Colours.ENDC}'
         component = f'{Colours.OKCYAN}[{component}]{Colours.ENDC}'

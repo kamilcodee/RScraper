@@ -1,12 +1,16 @@
+import json
 from typing import Any
 
 import requests
 
-from rscraper.logger import Logger, LogLevel
 from rscraper import Config
+from rscraper.ScraperInterface import ScraperInterface
+from rscraper.Util import Util
+from rscraper.logger.LogLevel import LogLevel
+from rscraper.logger.Logger import Logger
 
 
-class SubredditScraper:
+class SubredditScraper(ScraperInterface):
     def __init__(self, config: Config):
         self._component: str = 'Subreddit scraper'
         self._config = config
@@ -66,7 +70,28 @@ class SubredditScraper:
                     finished = True
                     break
 
-    def save(self) -> None:
-        """
-        Save to file
-        """
+    def save_data(self) -> None:
+
+        new_component = f'{self._component} - data save'
+        data_dir = self._config.data_dir
+        save_file_path = f'{data_dir}/{self._config.subreddits_data_filename}'
+
+        def callback_on_create() -> None:
+            Logger.log(LogLevel.INFO, new_component,
+                       f'Directory {data_dir} created')
+
+        def callback_on_delete() -> None:
+            Logger.log(LogLevel.WARN, new_component,
+                       f'File {save_file_path} exists -> Deleted')
+
+        Util.create_dir(data_dir, callback_on_create)
+        Util.del_file(save_file_path, callback_on_delete)
+
+        output = {
+            'count': len(self._subreddits),
+            'saved': Util.get_timestamp_utc(),
+            'subreddits': self._subreddits
+        }
+
+        with open(save_file_path, 'w') as out_file:
+            json.dump(output, out_file, indent=4)

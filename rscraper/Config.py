@@ -11,3 +11,6 @@ class Config:
     max_limit_per_request: int = 100
 
     user_agent: Callable[[], str] | str = lambda: UserAgent().random
+
+    data_dir: str = 'data'
+    subreddits_data_filename: str = 'subreddits.json'
