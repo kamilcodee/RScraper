@@ -4,13 +4,12 @@ from typing import Any
 import requests
 
 from rscraper import Config
-from rscraper.ScraperInterface import ScraperInterface
 from rscraper.Util import Util
 from rscraper.logger.LogLevel import LogLevel
 from rscraper.logger.Logger import Logger
 
 
-class SubredditScraper(ScraperInterface):
+class SubredditScraper:
     def __init__(self, config: Config):
         self._component: str = 'Subreddit scraper'
         self._config = config
@@ -95,3 +94,5 @@ class SubredditScraper(ScraperInterface):
 
         with open(save_file_path, 'w') as out_file:
             json.dump(output, out_file, indent=4)
+
+        Logger.log(LogLevel.INFO, new_component, f'Data saved to {save_file_path}')

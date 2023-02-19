@@ -14,3 +14,5 @@ class Config:
 
     data_dir: str = 'data'
     subreddits_data_filename: str = 'subreddits.json'
+
+    submissions_data_dir: str = 'submissions'

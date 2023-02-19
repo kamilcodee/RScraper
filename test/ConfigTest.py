@@ -25,7 +25,7 @@ class ConfigTest(unittest.TestCase):
         def get_user_agent():
             return expected_val
 
-        self.subject.user_agent = lambda: get_user_agent()
+        self.subject.user_agent = get_user_agent
 
         res = self.subject.user_agent()
 

@@ -6,7 +6,7 @@ from typing import Callable
 class Util:
 
     @staticmethod
-    def create_dir(path, callback: Callable) -> None:
+    def create_dir(path, callback: Callable | None) -> None:
         """
         Create directory if it does not exist
         :param path dirpath
@@ -16,10 +16,11 @@ class Util:
         if not os.path.isdir(path):
             os.mkdir(path)
 
-            callback()
+            if callback:
+                callback()
 
     @staticmethod
-    def del_file(path, callback: Callable) -> None:
+    def del_file(path, callback: Callable | None) -> None:
         """
         Delete file if it exists
         :param path filepath
@@ -29,7 +30,8 @@ class Util:
         if os.path.isfile(path):
             os.remove(path)
 
-            callback()
+            if callback:
+                callback()
 
     @staticmethod
     def get_timestamp_utc() -> str:
@@ -37,3 +39,11 @@ class Util:
         Get timestamp utc
         """
         return str(datetime.now(timezone.utc))
+
+    @staticmethod
+    def dir_exists(path: str) -> bool:
+        return os.path.isdir(path)
+
+    @staticmethod
+    def file_exists(path: str) -> bool:
+        return os.path.isfile(path)
